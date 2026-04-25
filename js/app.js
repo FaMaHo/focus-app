@@ -46,6 +46,19 @@ function captureThought() {
   setTimeout(() => btn.style.background = '', 700);
 }
 
+// ── VOLUME TOGGLES ──
+
+function toggleVolume() {
+  document.getElementById('volume-wrap').classList.toggle('open');
+  if (document.getElementById('volume-wrap').classList.contains('open')) fetchVolume();
+}
+
+function toggleFocusVolume() {
+  const wrap = document.getElementById('focus-volume-slider-wrap');
+  wrap.classList.toggle('open');
+  if (wrap.classList.contains('open')) fetchVolume();
+}
+
 // ── INIT ──
 
 (async function init() {
