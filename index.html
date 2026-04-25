@@ -1,0 +1,1136 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-50: #E6F1FB;
+    --blue-100: #B5D4F4;
+    --blue-200: #85B7EB;
+    --blue-400: #378ADD;
+    --blue-600: #185FA5;
+    --blue-800: #0C447C;
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-xl: 32px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: linear-gradient(145deg, #f0f6ff 0%, #e8f2fd 40%, #f4f8ff 100%);
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: flex; }
+
+  /* ── HOME VIEW ── */
+  #home-view {
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 28px 24px 20px;
+    gap: 16px;
+  }
+
+  .greeting {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--blue-800);
+    font-style: italic;
+    opacity: 0.85;
+    padding-left: 4px;
+  }
+
+  .top-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    flex: 1;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: rgba(255,255,255,0.82);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(55,138,221,0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 4px 24px rgba(24,95,165,0.07), 0 1px 4px rgba(24,95,165,0.04);
+    overflow: hidden;
+  }
+
+  /* ── POMODORO CARD ── */
+  #pomodoro-card {
+    padding: 28px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--blue-400);
+    margin-bottom: 20px;
+    align-self: flex-start;
+  }
+
+  .timer-ring-wrap {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin-bottom: 20px;
+  }
+
+  .timer-ring-wrap svg {
+    transform: rotate(-90deg);
+    width: 160px;
+    height: 160px;
+  }
+
+  .ring-bg { fill: none; stroke: var(--blue-50); stroke-width: 8; }
+  .ring-progress {
+    fill: none;
+    stroke: var(--blue-400);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear;
+  }
+
+  .timer-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .timer-time {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    color: var(--blue-800);
+    line-height: 1;
+    display: block;
+  }
+
+  .timer-phase {
+    font-size: 11px;
+    color: var(--blue-400);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 4px;
+    display: block;
+  }
+
+  .pomo-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .btn-primary {
+    background: var(--blue-400);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 10px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-primary:hover { background: var(--blue-600); }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-ghost {
+    background: var(--blue-50);
+    color: var(--blue-600);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 10px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-ghost:hover { background: var(--blue-100); }
+
+  .pomo-session-count {
+    font-size: 12px;
+    color: var(--blue-400);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--blue-100);
+    transition: background 0.3s;
+  }
+  .dot.done { background: var(--blue-400); }
+
+  .pomo-settings-toggle {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--blue-400);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .pomo-settings {
+    display: none;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--blue-50);
+    width: 100%;
+    gap: 10px;
+    flex-direction: column;
+  }
+  .pomo-settings.open { display: flex; }
+
+  .setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .setting-row label {
+    font-size: 12px;
+    color: var(--blue-600);
+    flex: 1;
+  }
+
+  .setting-row input[type="number"] {
+    width: 56px;
+    border: 1px solid var(--blue-100);
+    border-radius: 8px;
+    padding: 5px 8px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--blue-800);
+    background: white;
+    text-align: center;
+    outline: none;
+  }
+  .setting-row input[type="number"]:focus { border-color: var(--blue-400); }
+
+  .btn-apply {
+    background: var(--blue-50);
+    color: var(--blue-600);
+    border: 1px solid var(--blue-100);
+    border-radius: 8px;
+    padding: 7px 16px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    align-self: flex-end;
+    transition: background 0.15s;
+  }
+  .btn-apply:hover { background: var(--blue-100); }
+
+  /* ── TASK CARD ── */
+  #task-card {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .task-add-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--blue-400);
+    color: white;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background 0.15s, transform 0.1s;
+    flex-shrink: 0;
+    padding-bottom: 1px;
+  }
+  .task-add-btn:hover { background: var(--blue-600); }
+  .task-add-btn:active { transform: scale(0.93); }
+
+  .task-input-row {
+    display: none;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .task-input-row.open { display: flex; }
+
+  .task-input {
+    flex: 1;
+    border: 1px solid var(--blue-100);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--blue-800);
+    background: white;
+    outline: none;
+  }
+  .task-input:focus { border-color: var(--blue-400); }
+  .task-input::placeholder { color: #aac4e0; }
+
+  .task-input-submit {
+    background: var(--blue-400);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .task-input-submit:hover { background: var(--blue-600); }
+
+  .task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    max-height: 230px;
+    padding-right: 2px;
+  }
+
+  .task-list::-webkit-scrollbar { width: 4px; }
+  .task-list::-webkit-scrollbar-thumb { background: var(--blue-100); border-radius: 4px; }
+
+  .task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    background: var(--blue-50);
+    border: 1px solid transparent;
+    transition: border-color 0.15s, opacity 0.3s;
+    cursor: default;
+  }
+  .task-item:hover { border-color: var(--blue-100); }
+  .task-item.done { opacity: 0.45; }
+
+  .task-check {
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    border: 1.5px solid var(--blue-200);
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+    transition: background 0.15s, border-color 0.15s;
+    background: white;
+  }
+  .task-check.checked {
+    background: var(--blue-400);
+    border-color: var(--blue-400);
+  }
+  .task-check.checked::after {
+    content: '';
+    width: 5px;
+    height: 3px;
+    border-left: 1.5px solid white;
+    border-bottom: 1.5px solid white;
+    transform: rotate(-45deg) translateY(-1px);
+    display: block;
+  }
+
+  .task-text {
+    font-size: 13px;
+    color: var(--blue-800);
+    flex: 1;
+    line-height: 1.45;
+    word-break: break-word;
+  }
+  .task-item.done .task-text { text-decoration: line-through; color: var(--blue-400); }
+
+  .task-del {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--blue-200);
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 2px;
+    flex-shrink: 0;
+    transition: color 0.15s;
+    margin-top: -1px;
+  }
+  .task-del:hover { color: #e24b4a; }
+
+  .task-empty {
+    font-size: 13px;
+    color: #aac4e0;
+    text-align: center;
+    padding: 32px 0;
+    font-style: italic;
+  }
+
+  /* ── SPOTIFY CARD ── */
+  #spotify-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+  }
+
+  .spotify-art {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--blue-200), var(--blue-400));
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .spotify-art svg { width: 22px; height: 22px; opacity: 0.7; }
+
+  .spotify-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .spotify-track {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--blue-800);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .spotify-artist {
+    font-size: 11px;
+    color: var(--blue-400);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .spotify-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .sp-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--blue-400);
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: color 0.15s, background 0.15s;
+  }
+  .sp-btn:hover { color: var(--blue-600); background: var(--blue-50); }
+  .sp-btn svg { width: 18px; height: 18px; }
+  .sp-btn.play-btn svg { width: 22px; height: 22px; }
+  .sp-btn.play-btn { color: var(--blue-600); }
+
+  .spotify-connect-hint {
+    font-size: 11px;
+    color: var(--blue-400);
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .spotify-connect-hint .sp-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #1DB954;
+    flex-shrink: 0;
+  }
+
+  /* ── FOCUS VIEW ── */
+  #focus-view {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 24px 24px;
+    background: linear-gradient(160deg, #e8f2fd 0%, #f0f6ff 60%, #e4effe 100%);
+    position: relative;
+  }
+
+  .focus-exit {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid var(--blue-100);
+    border-radius: 10px;
+    padding: 7px 14px;
+    font-size: 12px;
+    color: var(--blue-600);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+    backdrop-filter: blur(8px);
+  }
+  .focus-exit:hover { background: rgba(255,255,255,0.9); }
+
+  .focus-phase-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--blue-400);
+    font-weight: 500;
+    margin-bottom: 40px;
+  }
+
+  .focus-ring-wrap {
+    position: relative;
+    width: 240px;
+    height: 240px;
+    margin-bottom: 36px;
+  }
+
+  .focus-ring-wrap svg {
+    transform: rotate(-90deg);
+    width: 240px;
+    height: 240px;
+  }
+
+  .focus-ring-bg { fill: none; stroke: rgba(55,138,221,0.12); stroke-width: 10; }
+  .focus-ring-progress {
+    fill: none;
+    stroke: var(--blue-400);
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear;
+  }
+
+  .focus-timer-text {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .focus-time {
+    font-family: 'DM Serif Display', serif;
+    font-size: 62px;
+    color: var(--blue-800);
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+
+  .focus-controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+
+  /* Focus thought capture */
+  .focus-add-btn {
+    position: absolute;
+    bottom: 100px;
+    right: 28px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--blue-400);
+    color: white;
+    border: none;
+    font-size: 26px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(55,138,221,0.3);
+    transition: background 0.15s, transform 0.1s;
+    line-height: 1;
+    padding-bottom: 2px;
+  }
+  .focus-add-btn:hover { background: var(--blue-600); }
+  .focus-add-btn:active { transform: scale(0.93); }
+
+  .focus-capture-popup {
+    position: absolute;
+    bottom: 160px;
+    right: 20px;
+    background: white;
+    border: 1px solid var(--blue-100);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    width: 280px;
+    box-shadow: 0 8px 32px rgba(24,95,165,0.12);
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .focus-capture-popup.open { display: flex; }
+
+  .capture-label {
+    font-size: 12px;
+    color: var(--blue-400);
+    font-style: italic;
+  }
+
+  .capture-input {
+    border: 1px solid var(--blue-100);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--blue-800);
+    background: var(--blue-50);
+    outline: none;
+    width: 100%;
+  }
+  .capture-input:focus { border-color: var(--blue-400); background: white; }
+
+  .capture-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  /* Focus spotify bar */
+  .focus-spotify-bar {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.75);
+    border: 1px solid var(--blue-100);
+    border-radius: 50px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    backdrop-filter: blur(10px);
+    white-space: nowrap;
+    box-shadow: 0 2px 12px rgba(24,95,165,0.06);
+  }
+
+  .focus-sp-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #1DB954;
+    flex-shrink: 0;
+  }
+
+  .focus-track-name {
+    font-size: 12px;
+    color: var(--blue-600);
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .focus-session-dots {
+    display: flex;
+    gap: 8px;
+    margin-top: -16px;
+    margin-bottom: 36px;
+  }
+
+  /* Animations */
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  #home-view .greeting { animation: fadeSlideUp 0.4s ease forwards; }
+  #home-view .top-row { animation: fadeSlideUp 0.5s 0.08s ease both; }
+  #home-view #spotify-card { animation: fadeSlideUp 0.5s 0.16s ease both; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  #focus-view { animation: fadeIn 0.3s ease forwards; }
+</style>
+</head>
+<body>
+
+<!-- ══ HOME VIEW ══ -->
+<div id="home-view" class="view active">
+  <p class="greeting" id="greeting-text">Good morning ✦</p>
+
+  <div class="top-row">
+    <!-- Pomodoro -->
+    <div class="card" id="pomodoro-card">
+      <span class="card-label">Focus timer</span>
+
+      <div class="timer-ring-wrap">
+        <svg viewBox="0 0 160 160">
+          <circle class="ring-bg" cx="80" cy="80" r="68"/>
+          <circle class="ring-progress" id="ring-progress" cx="80" cy="80" r="68"
+            stroke-dasharray="427.26" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-text">
+          <span class="timer-time" id="timer-display">25:00</span>
+          <span class="timer-phase" id="timer-phase">Focus</span>
+        </div>
+      </div>
+
+      <div class="pomo-controls">
+        <button class="btn-primary" id="start-btn" onclick="toggleTimer()">Start</button>
+        <button class="btn-ghost" onclick="resetTimer()">Reset</button>
+        <button class="btn-primary" id="focus-mode-btn" onclick="enterFocusMode()" style="padding:10px 14px; background: var(--blue-50); color: var(--blue-600); display:none;">⛶</button>
+      </div>
+
+      <div class="pomo-session-count" id="session-dots-home">
+        <div class="dot" id="d0"></div>
+        <div class="dot" id="d1"></div>
+        <div class="dot" id="d2"></div>
+        <div class="dot" id="d3"></div>
+        <span style="font-size:11px; margin-left:4px; color:var(--blue-400)">sessions</span>
+      </div>
+
+      <button class="pomo-settings-toggle" onclick="toggleSettings()">Customize timer</button>
+
+      <div class="pomo-settings" id="pomo-settings">
+        <div class="setting-row">
+          <label>Focus (min)</label>
+          <input type="number" id="set-focus" value="25" min="1" max="120">
+        </div>
+        <div class="setting-row">
+          <label>Short break (min)</label>
+          <input type="number" id="set-short" value="5" min="1" max="30">
+        </div>
+        <div class="setting-row">
+          <label>Long break (min)</label>
+          <input type="number" id="set-long" value="15" min="1" max="60">
+        </div>
+        <button class="btn-apply" onclick="applySettings()">Apply</button>
+      </div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="card" id="task-card">
+      <div class="task-header">
+        <span class="card-label" style="margin-bottom:0">Tasks</span>
+        <button class="task-add-btn" onclick="toggleTaskInput()" title="Add task">+</button>
+      </div>
+
+      <div class="task-input-row" id="task-input-row">
+        <input class="task-input" id="task-input" placeholder="What's on your mind?" maxlength="120"
+          onkeydown="if(event.key==='Enter') addTask()">
+        <button class="task-input-submit" onclick="addTask()">Add</button>
+      </div>
+
+      <div class="task-list" id="task-list">
+        <div class="task-empty" id="task-empty">Nothing here yet — add your first task</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spotify -->
+  <div class="card" id="spotify-card">
+    <div class="spotify-art">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" fill="white" opacity="0.3"/>
+        <circle cx="12" cy="12" r="6" fill="white" opacity="0.3"/>
+        <circle cx="12" cy="12" r="2.5" fill="white"/>
+      </svg>
+    </div>
+    <div class="spotify-info">
+      <div class="spotify-track" id="sp-track">Not connected</div>
+      <div class="spotify-artist" id="sp-artist">
+        <span class="spotify-connect-hint">
+          <span class="sp-dot"></span>
+          Connect Spotify to see what's playing
+        </span>
+      </div>
+    </div>
+    <div class="spotify-controls">
+      <button class="sp-btn" onclick="spPrev()" title="Previous">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+      </button>
+      <button class="sp-btn play-btn" onclick="spPlayPause()" id="sp-play-btn" title="Play/Pause">
+        <svg viewBox="0 0 24 24" fill="currentColor" id="sp-play-icon"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="sp-btn" onclick="spNext()" title="Next">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FOCUS VIEW ══ -->
+<div id="focus-view" class="view">
+  <button class="focus-exit" onclick="exitFocusMode()">← Back</button>
+
+  <p class="focus-phase-label" id="focus-phase-label">Focus session</p>
+
+  <div class="focus-ring-wrap">
+    <svg viewBox="0 0 240 240">
+      <circle class="focus-ring-bg" cx="120" cy="120" r="104"/>
+      <circle class="focus-ring-progress" id="focus-ring-progress" cx="120" cy="120" r="104"
+        stroke-dasharray="653.45" stroke-dashoffset="0"/>
+    </svg>
+    <div class="focus-timer-text">
+      <span class="focus-time" id="focus-display">25:00</span>
+    </div>
+  </div>
+
+  <div class="focus-session-dots" id="focus-session-dots">
+    <div class="dot" id="fd0"></div>
+    <div class="dot" id="fd1"></div>
+    <div class="dot" id="fd2"></div>
+    <div class="dot" id="fd3"></div>
+  </div>
+
+  <div class="focus-controls">
+    <button class="btn-primary" id="focus-start-btn" onclick="toggleTimer()">Pause</button>
+    <button class="btn-ghost" onclick="resetTimer()">Reset</button>
+  </div>
+
+  <!-- Thought capture popup -->
+  <div class="focus-capture-popup" id="capture-popup">
+    <span class="capture-label">Capture the thought, get back to focus</span>
+    <input class="capture-input" id="capture-input" placeholder="What's distracting you?"
+      onkeydown="if(event.key==='Enter') captureThought(); if(event.key==='Escape') closeCapturePopup()">
+    <div class="capture-row">
+      <button class="btn-ghost" style="font-size:12px; padding:6px 12px;" onclick="closeCapturePopup()">Cancel</button>
+      <button class="btn-primary" style="font-size:12px; padding:6px 16px;" onclick="captureThought()">Save & focus</button>
+    </div>
+  </div>
+
+  <button class="focus-add-btn" onclick="openCapturePopup()" title="Capture thought">+</button>
+
+  <!-- Spotify bar -->
+  <div class="focus-spotify-bar">
+    <span class="focus-sp-dot"></span>
+    <span class="focus-track-name" id="focus-track-name">Connect Spotify</span>
+    <button class="sp-btn play-btn" onclick="spPlayPause()" style="margin-left:4px;">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" id="focus-play-icon"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let FOCUS_MINS = 25, SHORT_MINS = 5, LONG_MINS = 15;
+let totalSecs = FOCUS_MINS * 60;
+let remaining = totalSecs;
+let isRunning = false;
+let interval = null;
+let phase = 'focus'; // 'focus' | 'short' | 'long'
+let sessions = 0;
+let spPlaying = false;
+let inFocusMode = false;
+
+// Mock track list
+const tracks = [
+  { track: 'Weightless', artist: 'Marconi Union' },
+  { track: 'Clair de Lune', artist: 'Debussy' },
+  { track: 'Brain Food', artist: 'Lo-Fi Beats' },
+  { track: 'Study Session', artist: 'ChilledCow' },
+  { track: 'Deep Focus', artist: 'Spotify' },
+];
+let trackIdx = 0;
+
+// ── TASKS (localStorage) ──
+function loadTasks() {
+  try { return JSON.parse(localStorage.getItem('fc_tasks') || '[]'); } catch { return []; }
+}
+function saveTasks(tasks) {
+  try { localStorage.setItem('fc_tasks', JSON.stringify(tasks)); } catch {}
+}
+let tasks = loadTasks();
+
+// ── GREETING ──
+function setGreeting() {
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greeting-text').textContent = g + ' ✦';
+}
+setGreeting();
+
+// ── TIMER ──
+const CIRC_HOME = 2 * Math.PI * 68;
+const CIRC_FOCUS = 2 * Math.PI * 104;
+
+function fmtTime(s) {
+  const m = Math.floor(s / 60), sec = s % 60;
+  return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+}
+
+function updateRings() {
+  const pct = remaining / totalSecs;
+  const offsetHome = CIRC_HOME * (1 - pct);
+  const offsetFocus = CIRC_FOCUS * (1 - pct);
+  document.getElementById('ring-progress').style.strokeDashoffset = offsetHome;
+  document.getElementById('focus-ring-progress').style.strokeDashoffset = offsetFocus;
+  document.getElementById('timer-display').textContent = fmtTime(remaining);
+  document.getElementById('focus-display').textContent = fmtTime(remaining);
+}
+
+function updatePhaseLabel() {
+  const labels = { focus: 'Focus', short: 'Short break', long: 'Long break' };
+  document.getElementById('timer-phase').textContent = labels[phase];
+  document.getElementById('focus-phase-label').textContent =
+    phase === 'focus' ? 'Focus session' : phase === 'short' ? 'Short break' : 'Long break';
+}
+
+function updateSessionDots() {
+  for (let i = 0; i < 4; i++) {
+    const cls = i < sessions % 5 ? 'dot done' : 'dot';
+    const d = document.getElementById('d' + i);
+    const fd = document.getElementById('fd' + i);
+    if (d) d.className = cls;
+    if (fd) fd.className = cls;
+  }
+}
+
+function tick() {
+  if (remaining <= 0) {
+    clearInterval(interval);
+    isRunning = false;
+    onPhaseEnd();
+    return;
+  }
+  remaining--;
+  updateRings();
+}
+
+function onPhaseEnd() {
+  if (phase === 'focus') {
+    sessions++;
+    updateSessionDots();
+    if (sessions % 4 === 0) {
+      phase = 'long';
+      totalSecs = LONG_MINS * 60;
+    } else {
+      phase = 'short';
+      totalSecs = SHORT_MINS * 60;
+    }
+  } else {
+    phase = 'focus';
+    totalSecs = FOCUS_MINS * 60;
+  }
+  remaining = totalSecs;
+  updateRings();
+  updatePhaseLabel();
+  setStartBtn('Start');
+}
+
+function toggleTimer() {
+  if (isRunning) {
+    clearInterval(interval);
+    isRunning = false;
+    setStartBtn('Resume');
+    document.getElementById('focus-start-btn').textContent = 'Resume';
+  } else {
+    isRunning = true;
+    interval = setInterval(tick, 1000);
+    setStartBtn('Pause');
+    document.getElementById('focus-start-btn').textContent = 'Pause';
+    // Show focus mode button once started
+    document.getElementById('focus-mode-btn').style.display = '';
+  }
+}
+
+function setStartBtn(t) {
+  document.getElementById('start-btn').textContent = t;
+}
+
+function resetTimer() {
+  clearInterval(interval);
+  isRunning = false;
+  phase = 'focus';
+  totalSecs = FOCUS_MINS * 60;
+  remaining = totalSecs;
+  updateRings();
+  updatePhaseLabel();
+  setStartBtn('Start');
+  document.getElementById('focus-start-btn').textContent = 'Start';
+  document.getElementById('focus-mode-btn').style.display = 'none';
+}
+
+// ── SETTINGS ──
+function toggleSettings() {
+  const s = document.getElementById('pomo-settings');
+  s.classList.toggle('open');
+}
+
+function applySettings() {
+  const f = parseInt(document.getElementById('set-focus').value) || 25;
+  const s = parseInt(document.getElementById('set-short').value) || 5;
+  const l = parseInt(document.getElementById('set-long').value) || 15;
+  FOCUS_MINS = Math.max(1, Math.min(120, f));
+  SHORT_MINS = Math.max(1, Math.min(30, s));
+  LONG_MINS = Math.max(1, Math.min(60, l));
+  resetTimer();
+  document.getElementById('pomo-settings').classList.remove('open');
+}
+
+// ── FOCUS MODE ──
+function enterFocusMode() {
+  inFocusMode = true;
+  document.getElementById('home-view').classList.remove('active');
+  document.getElementById('focus-view').classList.add('active');
+}
+
+function exitFocusMode() {
+  inFocusMode = false;
+  document.getElementById('focus-view').classList.remove('active');
+  document.getElementById('home-view').classList.add('active');
+  closeCapturePopup();
+}
+
+// ── CAPTURE THOUGHT ──
+function openCapturePopup() {
+  document.getElementById('capture-popup').classList.add('open');
+  setTimeout(() => document.getElementById('capture-input').focus(), 50);
+}
+
+function closeCapturePopup() {
+  document.getElementById('capture-popup').classList.remove('open');
+  document.getElementById('capture-input').value = '';
+}
+
+function captureThought() {
+  const val = document.getElementById('capture-input').value.trim();
+  if (!val) return;
+  tasks.push({ id: Date.now(), text: val, done: false });
+  saveTasks(tasks);
+  renderTasks();
+  closeCapturePopup();
+  // Brief visual feedback
+  const btn = document.querySelector('.focus-add-btn');
+  btn.style.background = '#1D9E75';
+  setTimeout(() => btn.style.background = '', 600);
+}
+
+// ── TASKS ──
+function renderTasks() {
+  const list = document.getElementById('task-list');
+  const empty = document.getElementById('task-empty');
+  if (tasks.length === 0) {
+    list.innerHTML = '<div class="task-empty" id="task-empty">Nothing here yet — add your first task</div>';
+    return;
+  }
+  list.innerHTML = tasks.map(t => `
+    <div class="task-item${t.done ? ' done' : ''}" id="ti-${t.id}">
+      <div class="task-check${t.done ? ' checked' : ''}" onclick="toggleTask(${t.id})"></div>
+      <span class="task-text">${escHtml(t.text)}</span>
+      <button class="task-del" onclick="deleteTask(${t.id})" title="Delete">×</button>
+    </div>
+  `).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toggleTaskInput() {
+  const row = document.getElementById('task-input-row');
+  row.classList.toggle('open');
+  if (row.classList.contains('open')) {
+    setTimeout(() => document.getElementById('task-input').focus(), 50);
+  }
+}
+
+function addTask() {
+  const input = document.getElementById('task-input');
+  const val = input.value.trim();
+  if (!val) return;
+  tasks.push({ id: Date.now(), text: val, done: false });
+  saveTasks(tasks);
+  renderTasks();
+  input.value = '';
+  input.focus();
+}
+
+function toggleTask(id) {
+  const t = tasks.find(x => x.id === id);
+  if (t) { t.done = !t.done; saveTasks(tasks); renderTasks(); }
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter(x => x.id !== id);
+  saveTasks(tasks);
+  renderTasks();
+}
+
+// ── SPOTIFY (mock) ──
+function updateSpotifyUI() {
+  const t = tracks[trackIdx];
+  document.getElementById('sp-track').textContent = t.track;
+  document.getElementById('sp-artist').textContent = t.artist;
+  document.getElementById('focus-track-name').textContent = t.track + ' · ' + t.artist;
+  const playPath = spPlaying ? 'M6 19h4V5H6v14zm8-14v14h4V5h-4z' : 'M8 5v14l11-7z';
+  document.getElementById('sp-play-icon').querySelector('path').setAttribute('d', playPath);
+  document.getElementById('focus-play-icon').querySelector('path').setAttribute('d', playPath);
+}
+
+function spPlayPause() {
+  spPlaying = !spPlaying;
+  updateSpotifyUI();
+}
+
+function spPrev() {
+  trackIdx = (trackIdx - 1 + tracks.length) % tracks.length;
+  updateSpotifyUI();
+}
+
+function spNext() {
+  trackIdx = (trackIdx + 1) % tracks.length;
+  updateSpotifyUI();
+}
+
+// ── INIT ──
+updateRings();
+updatePhaseLabel();
+updateSessionDots();
+renderTasks();
+updateSpotifyUI();
+
+// Update greeting every minute
+setInterval(setGreeting, 60000);
+</script>
+</body>
+</html>
