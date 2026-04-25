@@ -1,0 +1,42 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.suo
+*.user
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# Node (if npm is ever added)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+out/
+
+# Logs
+*.log
+logs/
+
+# OS temp files
+Thumbs.db
+ehthumbs.db
